@@ -13,6 +13,9 @@ public class ExcelDataStore
     public List<Animal> Animals { get; private set; } = new();
     public List<Visit> Visits { get; private set; } = new();
     public List<Medication> Medications { get; private set; } = new();
+    public List<string> Species { get; private set; } = new();
+
+    private static readonly string[] DefaultSpecies = { "Dog", "Cat", "Reptile", "Bird" };
 
     public ExcelDataStore(string filePath)
     {
@@ -23,7 +26,8 @@ public class ExcelDataStore
     {
         if (!File.Exists(_filePath))
         {
-            SeedMedicationsAndSave();
+            SeedDefaults();
+            Save();
             return;
         }
 
@@ -33,12 +37,12 @@ public class ExcelDataStore
         Animals = ReadAnimals(wb);
         Visits = ReadVisits(wb);
         Medications = ReadMedications(wb);
+        Species = ReadSpecies(wb);
 
-        if (Medications.Count == 0)
-        {
-            SeedMedications();
-            Save();
-        }
+        bool dirty = false;
+        if (Medications.Count == 0) { SeedMedications(); dirty = true; }
+        if (Species.Count == 0) { SeedSpecies(); dirty = true; }
+        if (dirty) Save();
     }
 
     public void Save()
@@ -49,13 +53,60 @@ public class ExcelDataStore
         WriteAnimals(wb);
         WriteVisits(wb);
         WriteMedications(wb);
+        WriteSpecies(wb);
         wb.SaveAs(_filePath);
     }
 
-    private void SeedMedicationsAndSave()
+    public bool TryAddAnimal(Animal animal, out string error)
+    {
+        error = "";
+        if (Animals.Any(a => a.ChipNumber == animal.ChipNumber))
+        {
+            error = "Chip number already exists.";
+            return false;
+        }
+        Animals.Add(animal);
+        Save();
+        return true;
+    }
+
+    public bool TryAddSpecies(string name, out string error)
+    {
+        error = "";
+        var trimmed = name.Trim();
+        if (string.IsNullOrEmpty(trimmed))
+        {
+            error = "Species name is required.";
+            return false;
+        }
+        if (Species.Any(s => string.Equals(s, trimmed, StringComparison.OrdinalIgnoreCase)))
+        {
+            error = "Species already exists.";
+            return false;
+        }
+        Species.Add(trimmed);
+        Save();
+        return true;
+    }
+
+    public bool RemoveSpecies(string name)
+    {
+        var idx = Species.FindIndex(s => string.Equals(s, name, StringComparison.OrdinalIgnoreCase));
+        if (idx < 0) return false;
+        Species.RemoveAt(idx);
+        Save();
+        return true;
+    }
+
+    private void SeedDefaults()
     {
         SeedMedications();
-        Save();
+        SeedSpecies();
+    }
+
+    private void SeedSpecies()
+    {
+        Species = DefaultSpecies.ToList();
     }
 
     private void SeedMedications()
@@ -254,6 +305,29 @@ public class ExcelDataStore
             row.Cell(1).Value = m.Name;
             row.Cell(2).Value = m.Price.ToString(CultureInfo.InvariantCulture);
             row.Cell(3).Value = m.StockQuantity;
+        }
+    }
+
+    // ---------- Species ----------
+    private static List<string> ReadSpecies(XLWorkbook wb)
+    {
+        var list = new List<string>();
+        if (!wb.TryGetWorksheet("Species", out var ws)) return list;
+        foreach (var row in ws.RowsUsed().Skip(1))
+        {
+            var name = row.Cell(1).GetString().Trim();
+            if (!string.IsNullOrEmpty(name)) list.Add(name);
+        }
+        return list;
+    }
+
+    private void WriteSpecies(XLWorkbook wb)
+    {
+        var ws = wb.Worksheets.Add("Species");
+        WriteHeader(ws, "Name");
+        for (int i = 0; i < Species.Count; i++)
+        {
+            ws.Row(i + 2).Cell(1).Value = Species[i];
         }
     }
 

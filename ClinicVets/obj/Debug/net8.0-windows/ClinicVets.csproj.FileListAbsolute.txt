@@ -20,3 +20,4 @@
 /Users/magen/Desktop/projectC/ClinicVets/obj/Debug/net8.0-windows/ClinicVets.pdb
 /Users/magen/Desktop/projectC/ClinicVets/obj/Debug/net8.0-windows/ClinicVets.genruntimeconfig.cache
 /Users/magen/Desktop/projectC/ClinicVets/obj/Debug/net8.0-windows/ref/ClinicVets.dll
+/Users/magen/Desktop/projectC/ClinicVets/obj/Debug/net8.0-windows/ClinicVets.sourcelink.json
