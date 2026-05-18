@@ -15,5 +15,11 @@
   <ItemGroup>
     <PackageReference Include="ClosedXML" Version="0.102.2" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="Images\login_bg.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>

@@ -1,4 +1,6 @@
+using System;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 using ClinicVets.Data;
 using ClinicVets.Models;
@@ -26,7 +28,9 @@ public class RegisterForm : Form
     private void BuildUi()
     {
         Text = "Register New Employee";
-        Size = new Size(500, 540);
+        
+        // Increase form width to 600 to accommodate the UI layout shift
+        Size = new Size(600, 540); 
         StartPosition = FormStartPosition.CenterParent;
         BackColor = Color.FromArgb(245, 248, 252);
         Font = new Font("Segoe UI", 10F);
@@ -52,7 +56,9 @@ public class RegisterForm : Form
         AddField("National ID (9 digits):", _nationalId, 260);
 
         var lblRole = new Label { Text = "Role:", Location = new Point(20, 303), AutoSize = true };
-        _role.Location = new Point(230, 300);
+        
+        // Shift the role combo box to the right (X = 330)
+        _role.Location = new Point(330, 300); 
         _role.Size = new Size(220, 25);
         _role.DropDownStyle = ComboBoxStyle.DropDownList;
         _role.Items.AddRange(new object[] { "Veterinarian", "Secretary" });
@@ -63,7 +69,8 @@ public class RegisterForm : Form
         var save = new Button
         {
             Text = "Register",
-            Location = new Point(230, 360),
+            // Shift the register button to align with the inputs (X = 330)
+            Location = new Point(330, 360), 
             Size = new Size(110, 36),
             BackColor = Color.FromArgb(40, 160, 90),
             ForeColor = Color.White,
@@ -76,7 +83,8 @@ public class RegisterForm : Form
         var cancel = new Button
         {
             Text = "Cancel",
-            Location = new Point(350, 360),
+            // Shift the cancel button to the right (330 + 110 + 10px spacing = 450)
+            Location = new Point(450, 360), 
             Size = new Size(100, 36),
             FlatStyle = FlatStyle.Flat,
             BackColor = Color.FromArgb(220, 220, 220),
@@ -102,8 +110,11 @@ public class RegisterForm : Form
     private void AddField(string labelText, Control input, int y)
     {
         var lbl = new Label { Text = labelText, Location = new Point(20, y + 3), AutoSize = true };
-        input.Location = new Point(230, y);
+        
+        // Shift all dynamically created input controls to the right (X = 330)
+        input.Location = new Point(330, y); 
         input.Size = new Size(220, 25);
+        
         Controls.Add(lbl);
         Controls.Add(input);
     }
