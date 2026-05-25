@@ -21,6 +21,10 @@ public class MainForm : Form
     {
         Text = $"ClinicVets — {_user.FullName} ({_user.Role})";
         Size = new Size(720, 480);
+
+        FormBorderStyle = FormBorderStyle.Sizable;
+        MaximizeBox = true;
+        FormBorderStyle = FormBorderStyle.Sizable;
         StartPosition = FormStartPosition.CenterScreen;
         BackColor = Color.FromArgb(245, 248, 252);
         Font = new Font("Segoe UI", 10F);
