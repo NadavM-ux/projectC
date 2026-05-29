@@ -117,37 +117,68 @@ public class VisitsForm : Form
         // הגדרת פונט ברירת מחדל למסך
         Font = new Font("Segoe UI", 10F);
 
+
         // Header עליון של המסך
         var header = new Panel
         {
             Dock = DockStyle.Top,
-            Height = 80,
-            BackColor = Color.FromArgb(40, 90, 150),
+            Height = 95,
+            BackColor = Color.White,
         };
+
+
+        var headerDogPic = new PictureBox
+        {
+            Location = new Point(25, 12),
+            Size = new Size(65, 65),
+            SizeMode = PictureBoxSizeMode.Zoom,
+            BackColor = Color.Transparent
+        };
+
+        string headerDogPath = Path.Combine(
+            Application.StartupPath,
+            "Images",
+            "dog1.png");
+
+        if (File.Exists(headerDogPath))
+        {
+            headerDogPic.Image = Image.FromFile(headerDogPath);
+        }
+
+        header.Controls.Add(headerDogPic);
 
         // כותרת ראשית
         var title = new Label
         {
-            Text = "🩺 Visits & Treatments",
-            Font = new Font("Segoe UI", 18F, FontStyle.Bold),
-            ForeColor = Color.White,
+            Text = "Visits & Treatments",
+            Font = new Font("Segoe UI", 22F, FontStyle.Bold),
+            ForeColor = Color.FromArgb(40, 90, 150),
             AutoSize = true,
-            Location = new Point(20, 15),
+            Location = new Point(105, 18),
         };
 
         // תת כותרת
         var subtitle = new Label
         {
             Text = "Manage clinic visits and treatments",
-            Font = new Font("Segoe UI", 10F, FontStyle.Italic),
-            ForeColor = Color.LightBlue,
+            Font = new Font("Segoe UI", 11F, FontStyle.Italic),
+            ForeColor = Color.FromArgb(100, 110, 130),
             AutoSize = true,
-            Location = new Point(22, 48),
+            Location = new Point(108, 58),
         };
 
         // הוספת רכיבים ל־Header
         header.Controls.Add(title);
         header.Controls.Add(subtitle);
+
+        var headerLine = new Panel
+        {
+            Dock = DockStyle.Bottom,
+            Height = 2,
+            BackColor = Color.FromArgb(40, 90, 150)
+        };
+
+        header.Controls.Add(headerLine);
 
         // הוספת ה־Header למסך
         Controls.Add(header);
@@ -157,7 +188,7 @@ public class VisitsForm : Form
         _alertLabel.Visible = false;
 
         // מיקום טבלת הביקורים
-        _grid.Location = new Point(20, 100);
+        _grid.Location = new Point(20, 115);
 
         // גודל התחלתי
         _grid.Size = new Size(900, 375);
@@ -595,7 +626,7 @@ public class VisitsForm : Form
                 detailsTitle.Visible = true;
                 detailsSubtitle.Visible = true;
 
-                detailsCard.BorderStyle = BorderStyle.FixedSingle;
+                detailsCard.BorderStyle = BorderStyle.None;
                 detailsCard.BackColor = Color.White;
 
                 detailsCard.Size = new Size(
@@ -741,18 +772,30 @@ public class VisitsForm : Form
             _store.Visits.Add(dlg.Result);
 
 
-            // מעבר על כל התרופות שניתנו במהלך הביקור
-            foreach (var medName in dlg.Result.MedicationsGiven)
+            // מעבר על כל התרופות שניתנו במהלך הביקור והורדת הכמות מהמלאי
+            foreach (var medicationQuantity in dlg.MedicationQuantities)
             {
+                // שם התרופה
+                var medName = medicationQuantity.Key;
+
+                // הכמות שניתנה
+                var quantity = medicationQuantity.Value;
+
                 // חיפוש התרופה במערכת לפי שם
                 var medication = _store.Medications
                     .FirstOrDefault(m => m.Name == medName);
 
-                // אם התרופה נמצאה ויש מלאי גדול מ־0
-                if (medication != null && medication.StockQuantity > 0)
+                // אם התרופה נמצאה
+                if (medication != null)
                 {
-                    // הורדת יחידה אחת מהמלאי
-                    medication.StockQuantity--;
+                    // הורדת הכמות שניתנה מהמלאי
+                    medication.StockQuantity -= quantity;
+
+                    // הגנה כדי שהמלאי לא יהיה שלילי
+                    if (medication.StockQuantity < 0)
+                    {
+                        medication.StockQuantity = 0;
+                    }
                 }
             }
 
@@ -850,8 +893,9 @@ public class VisitsForm : Form
         // תיבת חיפוש תרופה
         private readonly TextBox _medSearch = new();
 
-        // רשימת שמות התרופות שנבחרו
-        private readonly HashSet<string> _selectedMedicationNames = new();
+        // רשימת התרופות שנבחרו + כמות לכל תרופה
+        // לדוגמה: Antibiotics -> 3
+        private readonly Dictionary<string, int> _selectedMedicationQuantities = new();
 
         // משתנה עזר כדי לדעת מתי הרשימה נטענת מחדש
         private bool _loadingMedicationList = false;
@@ -876,6 +920,12 @@ public class VisitsForm : Form
         /// אם המשתמש ביטל את הפעולה, הערך יישאר null.
         /// </summary>
         public Visit? Result { get; private set; }
+
+        /// <summary>
+        /// כמויות התרופות שנבחרו בביקור.
+        /// המפתח הוא שם התרופה, והערך הוא הכמות שניתנה.
+        /// </summary>
+        public Dictionary<string, int> MedicationQuantities { get; private set; } = new();
 
         /// <summary>
         /// חיה מעודכנת במקרה שסומן שהביקור הוא חיסון.
@@ -932,7 +982,7 @@ public class VisitsForm : Form
             {
                 Size = new Size(950, 110),
                 BackColor = Color.White,
-                BorderStyle = BorderStyle.FixedSingle,
+                BorderStyle = BorderStyle.None,
                 Visible = false
             };
 
@@ -1004,11 +1054,12 @@ public class VisitsForm : Form
             {
                 Text = "🔍 Search animal by chip",
                 Location = new Point(20, 20),
-                Size = new Size(220, 35),
+                Size = new Size(220, 36),
                 BackColor = Color.FromArgb(40, 90, 150),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold)
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleCenter
             };
 
             searchChipBtn.FlatAppearance.BorderSize = 0;
@@ -1221,18 +1272,46 @@ public class VisitsForm : Form
                 var dashIndex = itemText.IndexOf(" — ", StringComparison.Ordinal);
                 var medicationName = dashIndex > 0 ? itemText[..dashIndex] : itemText;
 
-                // שמירת הבחירה גם אם המשתמש מחפש תרופה אחרת
+                // אם המשתמש מסמן תרופה
                 if (e.NewValue == CheckState.Checked)
                 {
-                    _selectedMedicationNames.Add(medicationName);
+                    // חיפוש התרופה במערכת
+                    var medication = _store.Medications
+                        .FirstOrDefault(m => m.Name == medicationName);
+
+                    if (medication == null)
+                    {
+                        e.NewValue = CheckState.Unchecked;
+                        return;
+                    }
+
+                    // פתיחת חלון בחירת כמות
+                    int? quantity = AskMedicationQuantity(
+                        medication.Name,
+                        medication.StockQuantity);
+
+                    // אם המשתמש ביטל, לא מסמנים את התרופה
+                    if (quantity == null)
+                    {
+                        e.NewValue = CheckState.Unchecked;
+                        return;
+                    }
+
+                    // שמירת הכמות שנבחרה
+                    _selectedMedicationQuantities[medication.Name] = quantity.Value;
                 }
                 else
                 {
-                    _selectedMedicationNames.Remove(medicationName);
+                    // אם המשתמש הסיר סימון, מוחקים את התרופה מהרשימה
+                    _selectedMedicationQuantities.Remove(medicationName);
                 }
 
-                // עדכון המחיר הכולל אחרי הסימון
-                BeginInvoke(new Action(UpdateTotal));
+                // אחרי שהסימון הסתיים, מרעננים את הרשימה ואת המחיר
+                BeginInvoke(new Action(() =>
+                {
+                    LoadMedicationList(_medSearch.Text);
+                    UpdateTotal();
+                }));
             };
 
             // הוספת התרופות לחלון
@@ -1334,10 +1413,23 @@ public class VisitsForm : Form
 
                     bigHeader.Location = new Point(
                         (ClientSize.Width - bigHeader.Width) / 2,
-                        25);
+                        25
+                    );
 
                     leftAnimalPic.Location = new Point(25, 12);
                     leftAnimalPic.Size = new Size(95, 95);
+
+                    // מרכזים את התוכן שבתוך הכותרת העליונה
+                    int headerContentWidth = 720;
+
+                    int headerContentStartX =
+                        (bigHeader.Width - headerContentWidth) / 2;
+
+                    leftAnimalPic.Location = new Point(headerContentStartX, 12);
+                    leftAnimalPic.Size = new Size(95, 95);
+
+                    bigTitle.Location = new Point(headerContentStartX + 130, 22);
+                    bigSubtitle.Location = new Point(headerContentStartX + 133, 75);
 
 
 
@@ -1351,7 +1443,7 @@ public class VisitsForm : Form
 
                     contentPanel.Size = new Size(panelWidth, panelHeight);
                     contentPanel.BackColor = Color.White;
-                    contentPanel.BorderStyle = BorderStyle.FixedSingle;
+                    contentPanel.BorderStyle = BorderStyle.None;
 
                     // רקע עדין מחוץ למסגרת
                     BackColor = Color.FromArgb(225, 235, 248);
@@ -1478,10 +1570,11 @@ public class VisitsForm : Form
                     contentPanel.BackColor = Color.Transparent;
                     contentPanel.BorderStyle = BorderStyle.None;
 
-                    // כפתור חיפוש
+                    // כפתור חיפוש - מצב חלון קטן
                     searchChipBtn.Location = new Point(20, 20);
-                    searchChipBtn.Size = new Size(220, 45);
-                    searchChipBtn.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+                    searchChipBtn.Size = new Size(220, 36);
+                    searchChipBtn.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+                    searchChipBtn.TextAlign = ContentAlignment.MiddleCenter;
 
                     // Animal
                     lblAnimal.Location = new Point(20, 75);
@@ -1848,6 +1941,132 @@ public class VisitsForm : Form
 
 
 
+        /// <summary>
+        /// פותחת חלון לבחירת כמות לתרופה.
+        /// מחזירה null אם המשתמש ביטל.
+        /// </summary>
+        private int? AskMedicationQuantity(string medicationName, int maxStock)
+        {
+            // חלון בחירת כמות
+            using var quantityForm = new Form
+            {
+                Text = "Medication Quantity",
+                Size = new Size(480, 300),
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false,
+                BackColor = Color.FromArgb(245, 248, 252),
+                Font = new Font("Segoe UI", 10F)
+            };
+
+            // כרטיס פנימי לבן
+            var card = new Panel
+            {
+                BackColor = Color.White,
+                Location = new Point(20, 20),
+                Size = new Size(425, 210),
+                BorderStyle = BorderStyle.None
+            };
+
+            // כותרת
+            var title = new Label
+            {
+                Text = $"Choose quantity for {medicationName}",
+                Font = new Font("Segoe UI", 13F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(40, 90, 150),
+                AutoSize = false,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Location = new Point(20, 20),
+                Size = new Size(385, 35)
+            };
+
+            // טקסט מלאי
+            var stockLabel = new Label
+            {
+                Text = $"Available stock: {maxStock}",
+                Font = new Font("Segoe UI", 10.5F),
+                ForeColor = Color.FromArgb(60, 60, 60),
+                AutoSize = false,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Location = new Point(20, 60),
+                Size = new Size(385, 28)
+            };
+
+            // תווית כמות
+            var quantityLabel = new Label
+            {
+                Text = "Quantity:",
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                AutoSize = true,
+                Location = new Point(120, 105)
+            };
+
+            // בחירת כמות
+            var quantityBox = new NumericUpDown
+            {
+                Minimum = 1,
+                Maximum = Math.Max(1, maxStock),
+                Value = 1,
+                Location = new Point(210, 101),
+                Size = new Size(90, 30),
+                Font = new Font("Segoe UI", 11F),
+                TextAlign = HorizontalAlignment.Center
+            };
+
+            // כפתור אישור
+            var okBtn = new Button
+            {
+                Text = "OK",
+                Size = new Size(120, 42),
+                Location = new Point(75, 155),
+                BackColor = Color.FromArgb(40, 90, 150),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                DialogResult = DialogResult.OK
+            };
+
+            okBtn.FlatAppearance.BorderSize = 0;
+
+            // כפתור ביטול
+            var cancelBtn = new Button
+            {
+                Text = "Cancel",
+                Size = new Size(120, 42),
+                Location = new Point(225, 155),
+                BackColor = Color.FromArgb(220, 220, 220),
+                ForeColor = Color.Black,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 10F),
+                DialogResult = DialogResult.Cancel
+            };
+
+            cancelBtn.FlatAppearance.BorderSize = 0;
+
+            // הוספת הרכיבים לכרטיס
+            card.Controls.Add(title);
+            card.Controls.Add(stockLabel);
+            card.Controls.Add(quantityLabel);
+            card.Controls.Add(quantityBox);
+            card.Controls.Add(okBtn);
+            card.Controls.Add(cancelBtn);
+
+            // הוספת הכרטיס לחלון
+            quantityForm.Controls.Add(card);
+
+            // הגדרת Enter / Escape
+            quantityForm.AcceptButton = okBtn;
+            quantityForm.CancelButton = cancelBtn;
+
+            // פתיחת החלון
+            if (quantityForm.ShowDialog(this) != DialogResult.OK)
+                return null;
+
+            return (int)quantityBox.Value;
+        }
+
+
 
         /// <summary>
         /// טוענת את רשימת התרופות לתוך ה־CheckedListBox.
@@ -1874,16 +2093,22 @@ public class VisitsForm : Form
                     continue;
                 }
 
+                // בדיקה אם התרופה כבר נבחרה ומה הכמות שלה
+                bool isSelected = _selectedMedicationQuantities.ContainsKey(medication.Name);
+                int selectedQuantity = isSelected ? _selectedMedicationQuantities[medication.Name] : 0;
+
                 // יצירת טקסט להצגה
                 string displayText = medication.StockQuantity <= 0
                     ? $"{medication.Name} — OUT OF STOCK"
-                    : $"{medication.Name} — ₪{medication.Price:0.##} (Stock: {medication.StockQuantity})";
+                    : isSelected
+                        ? $"{medication.Name} — ₪{medication.Price:0.##} (Stock: {medication.StockQuantity}) [Qty: {selectedQuantity}]"
+                        : $"{medication.Name} — ₪{medication.Price:0.##} (Stock: {medication.StockQuantity})";
 
                 // הוספת התרופה לרשימה
                 int index = _meds.Items.Add(displayText);
 
                 // אם התרופה כבר נבחרה לפני החיפוש, מחזירים לה סימון
-                if (_selectedMedicationNames.Contains(medication.Name))
+                if (isSelected)
                 {
                     _meds.SetItemChecked(index, true);
                 }
@@ -1907,20 +2132,24 @@ public class VisitsForm : Form
             // התחלה ממחיר הבסיס של ביקור
             decimal total = _basePrice;
 
-            // מעבר על כל התרופות שסומנו
-            foreach (var medicationName in _selectedMedicationNames)
+            // מעבר על כל התרופות שסומנו ועל הכמות שלהן
+            foreach (var medicationQuantity in _selectedMedicationQuantities)
             {
+                var medicationName = medicationQuantity.Key;
+                var quantity = medicationQuantity.Value;
+
                 var medication = _store.Medications
                     .FirstOrDefault(m => m.Name == medicationName);
 
                 if (medication != null)
                 {
-                    total += medication.Price;
+                    total += medication.Price * quantity;
                 }
             }
 
             // עדכון תצוגת המחיר למשתמש
-            _totalLabel.Text = $"Total: ₪{total:0.##} (base ₪{_basePrice:0.##} + meds ₪{total - _basePrice:0.##})";
+            _totalLabel.Text =
+                $"Total: ₪{total:0.##} (base ₪{_basePrice:0.##} + meds ₪{total - _basePrice:0.##})";
         }
 
         /// <summary>
@@ -1982,22 +2211,35 @@ public class VisitsForm : Form
             // סכום מחירי התרופות
             decimal medTotal = 0m;
 
-            // מעבר על כל התרופות שסומנו
-            foreach (var medicationName in _selectedMedicationNames)
+            // מעבר על כל התרופות שסומנו ועל הכמות שלהן
+            foreach (var medicationQuantity in _selectedMedicationQuantities)
             {
-                // הוספת שם התרופה לרשימת התרופות שניתנו
-                meds.Add(medicationName);
+                // שם התרופה
+                var medicationName = medicationQuantity.Key;
+
+                // הכמות שניתנה
+                var quantity = medicationQuantity.Value;
+
+                // שמירת התרופה לרשימת התרופות של הביקור
+                // אם הכמות היא 1, נשמור רק את השם.
+                // אם הכמות גדולה מ־1, נשמור עם xQuantity.
+                meds.Add(quantity == 1
+                    ? medicationName
+                    : $"{medicationName} x{quantity}");
 
                 // חיפוש התרופה במערכת
                 var medication = _store.Medications
                     .FirstOrDefault(m => m.Name == medicationName);
 
-                // אם התרופה נמצאה, מוסיפים את המחיר שלה
+                // אם התרופה נמצאה, מוסיפים מחיר כפול כמות
                 if (medication != null)
                 {
-                    medTotal += medication.Price;
+                    medTotal += medication.Price * quantity;
                 }
             }
+
+            // שמירת כמויות התרופות כדי שהמסך הראשי יוכל להוריד מהמלאי
+            MedicationQuantities = new Dictionary<string, int>(_selectedMedicationQuantities);
 
             // יצירת אובייקט ביקור חדש
             Result = new Visit

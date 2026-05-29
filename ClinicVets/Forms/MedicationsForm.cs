@@ -35,6 +35,21 @@ public class MedicationsForm : Form
     /// </summary>
     private readonly DataGridView _grid = new();
 
+
+
+    // תווית חיפוש תרופה
+    private readonly Label _searchLabel = new();
+
+    // תיבת חיפוש תרופה
+    private readonly TextBox _searchBox = new();
+
+    // כפתורים של המסך
+    // כפתורים של המסך
+    private Button _addBtn = null!;
+    private Button _deleteBtn = null!;
+    private Button _editBtn = null!;
+    private Button _backBtn = null!;
+
     /// <summary>
     /// פעולה בונה של מסך ניהול התרופות.
     ///
@@ -69,8 +84,17 @@ public class MedicationsForm : Form
         // כותרת החלון
         Text = "Medication Inventory";
 
-        // גודל החלון
+        // גודל החלון נשאר כמו שהיה
         Size = new Size(700, 520);
+
+        // מאפשר להגדיל את החלון
+        FormBorderStyle = FormBorderStyle.Sizable;
+
+        // מאפשר כפתור הגדלה
+        MaximizeBox = true;
+
+        // לא נותן להקטין את החלון מתחת לגודל התקין
+        MinimumSize = new Size(700, 520);
 
         // פתיחת החלון במרכז
         StartPosition = FormStartPosition.CenterParent;
@@ -102,11 +126,32 @@ public class MedicationsForm : Form
         // הוספת הכותרת למסך
         Controls.Add(title);
 
-        // מיקום טבלת התרופות
-        _grid.Location = new Point(20, 60);
+        // תווית חיפוש תרופה
+        _searchLabel.Text = "🔍 Search:";
+        _searchLabel.AutoSize = true;
+        _searchLabel.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+        _searchLabel.ForeColor = Color.FromArgb(40, 90, 150);
+        _searchLabel.Location = new Point(390, 28);
 
-        // גודל הטבלה
-        _grid.Size = new Size(640, 340);
+        // תיבת חיפוש תרופה
+        _searchBox.Location = new Point(480, 25);
+        _searchBox.Size = new Size(180, 28);
+        _searchBox.Font = new Font("Segoe UI", 10F);
+        _searchBox.PlaceholderText = "Search medication...";
+        _searchBox.BorderStyle = BorderStyle.FixedSingle;
+
+        // בכל הקלדה מרעננים את הטבלה לפי החיפוש
+        _searchBox.TextChanged += (_, _) => RefreshGrid(_searchBox.Text);
+
+        // הוספת החיפוש למסך
+        Controls.Add(_searchLabel);
+        Controls.Add(_searchBox);
+
+        // מיקום טבלת התרופות
+        _grid.Location = new Point(20, 65);
+
+        // גודל הטבלה - מוגדל קצת בלי לשנות את גודל החלון
+        _grid.Size = new Size(640, 355);
 
         // ביטול יצירת עמודות אוטומטית
         _grid.AutoGenerateColumns = false;
@@ -128,6 +173,15 @@ public class MedicationsForm : Form
 
         // הסתרת כותרות שורות
         _grid.RowHeadersVisible = false;
+
+        // העמודות יתפרסו על כל רוחב הטבלה
+        _grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+
+        // אם יהיו הרבה תרופות, תופיע גלילה אנכית
+        _grid.ScrollBars = ScrollBars.Vertical;
+
+        // מניעת שינוי גובה שורות ידני
+        _grid.AllowUserToResizeRows = false;
 
         /// <summary>
         /// עמודת שם התרופה.
@@ -171,60 +225,175 @@ public class MedicationsForm : Form
         /// <summary>
         /// כפתור הוספת תרופה חדשה.
         /// </summary>
-        var addBtn = MakeButton(
+        _addBtn = MakeButton(
             "➕ Add",
-            new Point(20, 420),
+            new Point(20, 430),
             Color.FromArgb(40, 160, 90));
 
         // בעת לחיצה → פתיחת חלון הוספת תרופה
-        addBtn.Click += OnAdd;
+        _addBtn.Click += OnAdd;
+
 
         /// <summary>
         /// כפתור מחיקת תרופה.
         /// </summary>
-        var delBtn = MakeButton(
+        _deleteBtn = MakeButton(
             "🗑 Delete",
-            new Point(130, 420),
+            new Point(130, 430),
             Color.FromArgb(200, 70, 70));
 
         // בעת לחיצה → מחיקת התרופה הנבחרת
-        delBtn.Click += OnDelete;
+        _deleteBtn.Click += OnDelete;
 
         /// <summary>
         /// כפתור חזרה לתפריט הראשי.
         /// </summary>
-        var backBtn = MakeButton(
+        _backBtn = MakeButton(
             "← Main Menu",
-            new Point(370, 420),
+            new Point(370, 430),
             Color.FromArgb(120, 130, 150));
 
         // שינוי גודל הכפתור
-        backBtn.Size = new Size(140, 36);
+        _backBtn.Size = new Size(140, 36);
 
         // סגירת המסך בעת לחיצה
-        backBtn.Click += (_, _) => Close();
+        _backBtn.Click += (_, _) => Close();
 
 
         /// <summary>
         /// כפתור עריכת תרופה.
         /// </summary>
-        var editBtn = MakeButton(
+        _editBtn = MakeButton(
             "✏ Edit",
-            new Point(240, 420),
+            new Point(240, 430),
             Color.FromArgb(52, 152, 219));
 
         // בעת לחיצה → עריכת התרופה הנבחרת
-        editBtn.Click += OnEdit;
+        _editBtn.Click += OnEdit;
 
 
 
 
 
-        Controls.Add(addBtn);
-        Controls.Add(delBtn);
-        Controls.Add(editBtn);
-        Controls.Add(backBtn);
+        Controls.Add(_addBtn);
+        Controls.Add(_deleteBtn);
+        Controls.Add(_editBtn);
+        Controls.Add(_backBtn);
+
+        // התאמת המסך כאשר מגדילים או מקטינים אותו
+        Resize += MedicationsForm_Resize;
+
+        // הפעלה ראשונית כדי שהכול יהיה במקום כבר בפתיחה
+        MedicationsForm_Resize(this, EventArgs.Empty);
     }
+
+
+
+
+
+    // מסדר את מסך התרופות לפי גודל החלון
+    private void MedicationsForm_Resize(object? sender, EventArgs e)
+    {
+        int margin = 20;
+
+        // מיקום וגודל של החיפוש
+        _searchBox.Size = new Size(210, 28);
+
+        _searchBox.Location = new Point(
+            ClientSize.Width - _searchBox.Width - margin,
+            25
+        );
+
+        _searchLabel.Location = new Point(
+            _searchBox.Left - _searchLabel.Width - 10,
+            28
+        );
+
+        // הטבלה מתרחבת עם החלון
+        _grid.Location = new Point(margin, 65);
+
+        _grid.Size = new Size(
+            ClientSize.Width - (margin * 2),
+            ClientSize.Height - 150
+        );
+
+        // כפתורים בתחתית
+        int buttonY = ClientSize.Height - 60;
+
+        // מצב חלון גדול
+        if (ClientSize.Width > 1000)
+        {
+            _grid.DefaultCellStyle.Font = new Font("Segoe UI", 13F);
+            _grid.ColumnHeadersDefaultCellStyle.Font =
+                new Font("Segoe UI", 14F, FontStyle.Bold);
+
+            _grid.ColumnHeadersHeight = 50;
+
+            foreach (DataGridViewRow row in _grid.Rows)
+            {
+                row.Height = 45;
+            }
+
+            _addBtn.Size = new Size(130, 45);
+            _deleteBtn.Size = new Size(130, 45);
+            _editBtn.Size = new Size(130, 45);
+            _backBtn.Size = new Size(170, 45);
+
+            _addBtn.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            _deleteBtn.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            _editBtn.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            _backBtn.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+
+            _searchBox.Font = new Font("Segoe UI", 11F);
+            _searchLabel.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+
+            // רווח מסודר בין הכפתורים
+            int gap = 25;
+
+            _addBtn.Location = new Point(margin, buttonY);
+            _deleteBtn.Location = new Point(_addBtn.Right + gap, buttonY);
+            _editBtn.Location = new Point(_deleteBtn.Right + gap, buttonY);
+            _backBtn.Location = new Point(_editBtn.Right + gap, buttonY);
+        }
+        else
+        {
+            _grid.DefaultCellStyle.Font = new Font("Segoe UI", 10F);
+            _grid.ColumnHeadersDefaultCellStyle.Font =
+                new Font("Segoe UI", 10F, FontStyle.Regular);
+
+            _grid.ColumnHeadersHeight = 32;
+
+            foreach (DataGridViewRow row in _grid.Rows)
+            {
+                row.Height = 32;
+            }
+
+            _addBtn.Size = new Size(100, 36);
+            _deleteBtn.Size = new Size(100, 36);
+            _editBtn.Size = new Size(100, 36);
+            _backBtn.Size = new Size(140, 36);
+
+            _addBtn.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            _deleteBtn.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            _editBtn.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            _backBtn.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+
+            _searchBox.Font = new Font("Segoe UI", 10F);
+            _searchLabel.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+
+            // רווח רגיל במסך קטן
+            int gap = 10;
+
+            _addBtn.Location = new Point(margin, buttonY);
+            _deleteBtn.Location = new Point(_addBtn.Right + gap, buttonY);
+            _editBtn.Location = new Point(_deleteBtn.Right + gap, buttonY);
+            _backBtn.Location = new Point(_editBtn.Right + 50, buttonY);
+        }
+    }
+
+
+
+
 
     /// <summary>
     /// פונקציית עזר ליצירת כפתורים מעוצבים.
@@ -277,13 +446,29 @@ public class MedicationsForm : Form
     /// 1. מנקה את הנתונים הישנים.
     /// 2. טוענת מחדש את רשימת התרופות.
     /// </summary>
-    private void RefreshGrid()
+    private void RefreshGrid(string filter = "")
     {
         // ניקוי מקור הנתונים הישן
         _grid.DataSource = null;
 
-        // טעינת רשימת התרופות מחדש
-        _grid.DataSource = _store.Medications.ToList();
+        // טקסט החיפוש
+        string searchText = filter.Trim().ToLower();
+
+        // אם אין חיפוש, מציגים את כל התרופות
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            _grid.DataSource = _store.Medications.ToList();
+        }
+        else
+        {
+            // אם יש חיפוש, מציגים רק תרופות שהשם שלהן מכיל את הטקסט
+            _grid.DataSource = _store.Medications
+                .Where(m => m.Name.ToLower().Contains(searchText))
+                .ToList();
+        }
+
+        // אחרי רענון הנתונים מחזירים את העיצוב לפי גודל החלון
+        MedicationsForm_Resize(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -333,7 +518,7 @@ public class MedicationsForm : Form
             _store.Save();
 
             // רענון הטבלה
-            RefreshGrid();
+            RefreshGrid(_searchBox.Text);
         }
     }
 
@@ -377,7 +562,7 @@ public class MedicationsForm : Form
         _store.Save();
 
         // רענון הטבלה
-        RefreshGrid();
+        RefreshGrid(_searchBox.Text);
     }
 
 
@@ -415,7 +600,7 @@ public class MedicationsForm : Form
             _store.Save();
 
             // רענון הטבלה
-            RefreshGrid();
+            RefreshGrid(_searchBox.Text);
         }
     }
 
