@@ -1095,8 +1095,9 @@ public class VisitsForm : Form
                 _animal.Items.Add($"{a.Name} (chip {a.ChipNumber}) — {a.Species}");
             }
 
-            // בחירת החיה הראשונה כברירת מחדל
-            _animal.SelectedIndex = 0;
+            // לא בוחרים חיה אוטומטית.
+            // הווטרינר חייב לבחור חיה בעצמו מתוך הרשימה.
+            _animal.SelectedIndex = -1;
 
             // הוספת התווית ורשימת החיות לחלון
             contentPanel.Controls.Add(lblAnimal);
