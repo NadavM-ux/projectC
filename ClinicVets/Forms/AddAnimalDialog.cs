@@ -25,8 +25,9 @@ public class AddAnimalDialog : Form
         StartPosition = FormStartPosition.CenterParent;
         BackColor = Color.FromArgb(245, 248, 252);
         Font = new Font("Segoe UI", 10F);
-        FormBorderStyle = FormBorderStyle.FixedDialog;
-        MaximizeBox = false;
+        FormBorderStyle = FormBorderStyle.Sizable;
+        MaximizeBox = true;
+        MinimumSize = new Size(440, 480);
 
         AddRow("Chip / serial #:", _chip, 20);
         AddRow("Name (letters):", _name, 60);
@@ -79,6 +80,8 @@ public class AddAnimalDialog : Form
 
         Controls.Add(save);
         Controls.Add(cancel);
+
+        UiHelpers.EnableProportionalScaling(this);
     }
 
     private void AddRow(string text, Control input, int y)

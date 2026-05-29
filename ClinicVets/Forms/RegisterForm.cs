@@ -34,8 +34,9 @@ public class RegisterForm : Form
         StartPosition = FormStartPosition.CenterParent;
         BackColor = Color.FromArgb(245, 248, 252);
         Font = new Font("Segoe UI", 10F);
-        FormBorderStyle = FormBorderStyle.FixedDialog;
-        MaximizeBox = false;
+        FormBorderStyle = FormBorderStyle.Sizable;
+        MaximizeBox = true;
+        MinimumSize = new Size(600, 540);
 
         var title = new Label
         {
@@ -105,6 +106,8 @@ public class RegisterForm : Form
             Location = new Point(20, 420),
         };
         Controls.Add(rules);
+
+        UiHelpers.EnableProportionalScaling(this);
     }
 
     private void AddField(string labelText, Control input, int y)

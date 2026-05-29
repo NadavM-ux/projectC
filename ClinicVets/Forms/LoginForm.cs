@@ -28,8 +28,9 @@ public class LoginForm : Form
         Size = new Size(800, 600); 
         StartPosition = FormStartPosition.CenterScreen;
         Font = new Font("Segoe UI", 10F);
-        FormBorderStyle = FormBorderStyle.FixedDialog;
-        MaximizeBox = false;
+        FormBorderStyle = FormBorderStyle.Sizable;
+        MaximizeBox = true;
+        MinimumSize = new Size(800, 600);
 
         // --- Form Background Setup ---
         try
@@ -148,8 +149,10 @@ public class LoginForm : Form
         
         // Mount the master layout panel to the root form architecture
         Controls.Add(cardPanel);
-        
+
         AcceptButton = loginBtn;
+
+        UiHelpers.EnableProportionalScaling(this);
     }
 
     public Employee? AuthenticatedEmployee { get; private set; }

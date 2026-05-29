@@ -658,11 +658,14 @@ public class MedicationsForm : Form
             // פונט כללי
             Font = new Font("Segoe UI", 10F);
 
-            // חלון קבוע
-            FormBorderStyle = FormBorderStyle.FixedDialog;
+            // חלון שניתן להגדלה
+            FormBorderStyle = FormBorderStyle.Sizable;
 
-            // ביטול אפשרות הגדלה
-            MaximizeBox = false;
+            // אפשרות הגדלה למסך מלא
+            MaximizeBox = true;
+
+            // לא נותן להקטין מתחת לגודל התקין
+            MinimumSize = new Size(380, 260);
 
             // יצירת שורת שם התרופה
             AddRow("Name:", _name, 20);
@@ -758,6 +761,9 @@ public class MedicationsForm : Form
             // הוספת הכפתורים לחלון
             Controls.Add(save);
             Controls.Add(cancel);
+
+            // התאמת הפריסה כאשר מגדילים את החלון
+            UiHelpers.EnableProportionalScaling(this);
         }
 
         /// <summary>
@@ -877,11 +883,14 @@ public class MedicationsForm : Form
             // פונט
             Font = new Font("Segoe UI", 10F);
 
-            // חלון קבוע
-            FormBorderStyle = FormBorderStyle.FixedDialog;
+            // חלון שניתן להגדלה
+            FormBorderStyle = FormBorderStyle.Sizable;
 
-            // ביטול אפשרות הגדלה
-            MaximizeBox = false;
+            // אפשרות הגדלה למסך מלא
+            MaximizeBox = true;
+
+            // לא נותן להקטין מתחת לגודל התקין
+            MinimumSize = new Size(380, 240);
 
             // שם התרופה
             var lblName = new Label
@@ -947,6 +956,9 @@ public class MedicationsForm : Form
             save.Click += OnSave;
 
             Controls.Add(save);
+
+            // התאמת הפריסה כאשר מגדילים את החלון
+            UiHelpers.EnableProportionalScaling(this);
         }
 
         /// <summary>

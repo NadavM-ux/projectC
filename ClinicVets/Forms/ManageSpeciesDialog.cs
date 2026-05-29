@@ -24,8 +24,9 @@ public class ManageSpeciesDialog : Form
         StartPosition = FormStartPosition.CenterParent;
         BackColor = Color.FromArgb(245, 248, 252);
         Font = new Font("Segoe UI", 10F);
-        FormBorderStyle = FormBorderStyle.FixedDialog;
-        MaximizeBox = false;
+        FormBorderStyle = FormBorderStyle.Sizable;
+        MaximizeBox = true;
+        MinimumSize = new Size(420, 420);
 
         var title = new Label
         {
@@ -56,6 +57,8 @@ public class ManageSpeciesDialog : Form
         var closeBtn = UiHelpers.MakeButton("Close", new Point(290, 335), Color.FromArgb(120, 130, 150), size: new Size(100, 30));
         closeBtn.Click += (_, _) => Close();
         Controls.Add(closeBtn);
+
+        UiHelpers.EnableProportionalScaling(this);
     }
 
     private void RefreshList()

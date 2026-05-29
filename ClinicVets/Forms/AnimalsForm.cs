@@ -23,7 +23,9 @@ public class AnimalsForm : Form
     {
         Text = "Animal Patient Cards";
         Size = new Size(900, 560);
-        MinimumSize = new Size(700, 460);
+        MinimumSize = new Size(900, 560);
+        FormBorderStyle = FormBorderStyle.Sizable;
+        MaximizeBox = true;
         StartPosition = FormStartPosition.CenterParent;
         BackColor = Color.FromArgb(245, 248, 252);
         Font = new Font("Segoe UI", 10F);
@@ -32,6 +34,8 @@ public class AnimalsForm : Form
         BuildSearchBar();
         BuildGrid();
         BuildActionBar();
+
+        UiHelpers.EnableProportionalScaling(this);
     }
 
     private void BuildHeader()
@@ -71,7 +75,6 @@ public class AnimalsForm : Form
     {
         _grid.Location = new Point(20, 110);
         _grid.Size = new Size(840, 320);
-        _grid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
         _grid.AutoGenerateColumns = false;
         _grid.AllowUserToAddRows = false;
         _grid.ReadOnly = true;
@@ -106,17 +109,14 @@ public class AnimalsForm : Form
     private void BuildActionBar()
     {
         var addBtn = UiHelpers.MakeButton("➕ Add Animal", new Point(20, 450), Color.FromArgb(40, 160, 90), size: new Size(160, 36));
-        addBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
         addBtn.Click += OnAddAnimal;
         Controls.Add(addBtn);
 
         var manageBtn = UiHelpers.MakeButton("🐾 Manage Species", new Point(200, 450), Color.FromArgb(80, 130, 180), size: new Size(180, 36));
-        manageBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
         manageBtn.Click += OnManageSpecies;
         Controls.Add(manageBtn);
 
         var backBtn = UiHelpers.MakeButton("← Main Menu", new Point(400, 450), Color.FromArgb(120, 130, 150), size: new Size(140, 36));
-        backBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
         backBtn.Click += (_, _) => Close();
         Controls.Add(backBtn);
     }

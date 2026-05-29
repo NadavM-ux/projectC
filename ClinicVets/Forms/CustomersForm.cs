@@ -29,6 +29,9 @@ public class CustomersForm : Form
         StartPosition = FormStartPosition.CenterParent;
         BackColor = Color.FromArgb(245, 248, 252);
         Font = new Font("Segoe UI", 10F);
+        FormBorderStyle = FormBorderStyle.Sizable;
+        MaximizeBox = true;
+        MinimumSize = new Size(900, 600);
 
         var title = new Label
         {
@@ -92,6 +95,8 @@ public class CustomersForm : Form
         _animalsList.Size = new Size(220, 380);
         _animalsList.BackColor = Color.White;
         Controls.Add(_animalsList);
+
+        UiHelpers.EnableProportionalScaling(this);
     }
 
     private static Button MakeButton(string text, Point location, Color back, Color? fore = null)
@@ -179,8 +184,9 @@ public class CustomersForm : Form
             StartPosition = FormStartPosition.CenterParent;
             BackColor = Color.FromArgb(245, 248, 252);
             Font = new Font("Segoe UI", 10F);
-            FormBorderStyle = FormBorderStyle.FixedDialog;
-            MaximizeBox = false;
+            FormBorderStyle = FormBorderStyle.Sizable;
+            MaximizeBox = true;
+            MinimumSize = new Size(420, 320);
 
             AddRow("Full name (letters):", _name, 20);
             AddRow("National ID (9 digits):", _id, 60);
@@ -212,6 +218,8 @@ public class CustomersForm : Form
 
             Controls.Add(save);
             Controls.Add(cancel);
+
+            UiHelpers.EnableProportionalScaling(this);
         }
 
         private void AddRow(string text, Control input, int y)

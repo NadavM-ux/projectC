@@ -1836,9 +1836,10 @@ public class VisitsForm : Form
                 Text = "Search Animal",
                 Size = new Size(420, 220),
                 StartPosition = FormStartPosition.CenterParent,
-                FormBorderStyle = FormBorderStyle.FixedDialog,
-                MaximizeBox = false,
+                FormBorderStyle = FormBorderStyle.Sizable,
+                MaximizeBox = true,
                 MinimizeBox = false,
+                MinimumSize = new Size(420, 220),
                 BackColor = Color.White,
                 Font = new Font("Segoe UI", 10F)
             };
@@ -1898,6 +1899,9 @@ public class VisitsForm : Form
             searchForm.AcceptButton = okBtn;
             searchForm.CancelButton = cancelBtn;
 
+            // התאמת הפריסה כאשר מגדילים את החלון
+            UiHelpers.EnableProportionalScaling(searchForm);
+
             // פתיחת החלון
             if (searchForm.ShowDialog(this) != DialogResult.OK)
                 return;
@@ -1954,9 +1958,10 @@ public class VisitsForm : Form
                 Text = "Medication Quantity",
                 Size = new Size(480, 300),
                 StartPosition = FormStartPosition.CenterParent,
-                FormBorderStyle = FormBorderStyle.FixedDialog,
-                MaximizeBox = false,
+                FormBorderStyle = FormBorderStyle.Sizable,
+                MaximizeBox = true,
                 MinimizeBox = false,
+                MinimumSize = new Size(480, 300),
                 BackColor = Color.FromArgb(245, 248, 252),
                 Font = new Font("Segoe UI", 10F)
             };
@@ -2059,6 +2064,9 @@ public class VisitsForm : Form
             // הגדרת Enter / Escape
             quantityForm.AcceptButton = okBtn;
             quantityForm.CancelButton = cancelBtn;
+
+            // התאמת הפריסה כאשר מגדילים את החלון
+            UiHelpers.EnableProportionalScaling(quantityForm);
 
             // פתיחת החלון
             if (quantityForm.ShowDialog(this) != DialogResult.OK)
