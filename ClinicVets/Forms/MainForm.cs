@@ -5,7 +5,7 @@ using ClinicVets.Models;
 
 namespace ClinicVets.Forms;
 
-public class MainForm : Form
+public class MainForm : AppForm
 {
     private readonly ExcelDataStore _store;
     private readonly Employee _user;
@@ -78,6 +78,12 @@ public class MainForm : Form
         grid.Controls.Add(medsBtn, 1, 1);
 
         Controls.Add(grid);
+
+        // The Fill grid must be the last control docked so the docked header
+        // (Top) and logout bar (Bottom) reserve their space first. Otherwise
+        // the blue header paints over the top row of tiles. Bringing the grid
+        // to the front of the z-order makes the layout engine dock it last.
+        grid.BringToFront();
 
         var logout = new Button
         {

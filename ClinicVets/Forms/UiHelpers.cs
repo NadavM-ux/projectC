@@ -1,12 +1,24 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace ClinicVets.Forms;
 
 internal static class UiHelpers
 {
+    // Turns on double buffering for a control that does not expose it publicly
+    // (e.g. DataGridView). This stops the grid from flickering when it is
+    // redrawn during a window resize or when its data is refreshed.
+    public static void EnableDoubleBuffering(Control control)
+    {
+        var prop = typeof(Control).GetProperty(
+            "DoubleBuffered",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        prop?.SetValue(control, true, null);
+    }
+
     public static Button MakeButton(string text, Point location, Color back, Color? fore = null, Size? size = null)
     {
         var b = new Button
@@ -30,6 +42,10 @@ internal static class UiHelpers
     public static void EnableProportionalScaling(Form form)
     {
         var design = new Dictionary<Control, Rectangle>();
+        // Remember the original font of every control so we can scale the text
+        // by the same factor as the boxes — otherwise the boxes grow but the
+        // text stays small.
+        var designFont = new Dictionary<Control, Font>();
         var designClient = Size.Empty;
         var captured = false;
 
@@ -38,6 +54,7 @@ internal static class UiHelpers
             foreach (Control c in parent.Controls)
             {
                 design[c] = c.Bounds;
+                designFont[c] = c.Font;
                 Capture(c);
             }
         }
@@ -46,6 +63,14 @@ internal static class UiHelpers
         {
             foreach (Control c in parent.Controls)
             {
+                // Scale the text to match the new size of the control.
+                if (designFont.TryGetValue(c, out var of))
+                {
+                    float newSize = Math.Max(1f, of.Size * scale);
+                    if (Math.Abs(c.Font.Size - newSize) > 0.1f)
+                        c.Font = new Font(of.FontFamily, newSize, of.Style);
+                }
+
                 // Docked controls are positioned by the layout engine, not by us.
                 if (c.Dock != DockStyle.None)
                 {

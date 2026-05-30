@@ -6,7 +6,7 @@ using ClinicVets.Validation;
 
 namespace ClinicVets.Forms;
 
-public class CustomersForm : Form
+public class CustomersForm : AppForm
 {
     private readonly ExcelDataStore _store;
     private readonly DataGridView _grid = new();
@@ -73,6 +73,7 @@ public class CustomersForm : Form
         _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Phone", DataPropertyName = nameof(Customer.Phone), Width = 120 });
         _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Email", DataPropertyName = nameof(Customer.Email), Width = 180 });
         _grid.SelectionChanged += OnSelectionChanged;
+        UiHelpers.EnableDoubleBuffering(_grid);
         Controls.Add(_grid);
 
         var addBtn = MakeButton("➕ Add Customer", new Point(20, 380), Color.FromArgb(40, 160, 90));
@@ -168,7 +169,7 @@ public class CustomersForm : Form
         }
     }
 
-    private class AddCustomerDialog : Form
+    private class AddCustomerDialog : AppForm
     {
         private readonly TextBox _name = new();
         private readonly TextBox _id = new();

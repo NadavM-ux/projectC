@@ -8,7 +8,7 @@ using ClinicVets.Models;
 
 namespace ClinicVets.Forms;
 
-public class LoginForm : Form
+public class LoginForm : AppForm
 {
     private readonly ExcelDataStore _store;
     private readonly TextBox _usernameBox = new();

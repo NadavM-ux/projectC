@@ -8,7 +8,7 @@ using ClinicVets.Validation;
 
 namespace ClinicVets.Forms;
 
-public class RegisterForm : Form
+public class RegisterForm : AppForm
 {
     private readonly ExcelDataStore _store;
     private readonly TextBox _username = new();

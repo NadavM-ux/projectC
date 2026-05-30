@@ -5,7 +5,7 @@ using ClinicVets.Validation;
 
 namespace ClinicVets.Forms;
 
-public class AddAnimalDialog : Form
+public class AddAnimalDialog : AppForm
 {
     private readonly TextBox _chip = new();
     private readonly TextBox _name = new();
@@ -45,7 +45,9 @@ public class AddAnimalDialog : Form
         AddRow("Weight (0.1-100):", _weight, 140);
 
         var now = DateTime.Now;
-        _dob.Format = DateTimePickerFormat.Short;
+        // Show the date as day/month/year regardless of the machine's locale.
+        _dob.Format = DateTimePickerFormat.Custom;
+        _dob.CustomFormat = "dd-MM-yyyy";
         _dob.MinDate = new DateTime(2000, 1, 1);
         _dob.MaxDate = now;
         _dob.Value = now;
@@ -66,7 +68,8 @@ public class AddAnimalDialog : Form
         _hasVaccine.CheckedChanged += (_, _) => _vaccine.Enabled = _hasVaccine.Checked;
         _vaccine.Location = new Point(180, 260);
         _vaccine.Size = new Size(220, 25);
-        _vaccine.Format = DateTimePickerFormat.Short;
+        _vaccine.Format = DateTimePickerFormat.Custom;
+        _vaccine.CustomFormat = "dd-MM-yyyy";
         _vaccine.MaxDate = DateTime.Now;
         _vaccine.Enabled = false;
         Controls.Add(_hasVaccine);
